@@ -7,13 +7,13 @@ const ChatWindow = ({ currentUser, recipient }) => {
   const [chatHistory, setChatHistory] = useState([]);
   const room = [currentUser?.id, recipient?.id].sort().join('_');
 
-useEffect(() => {
+  useEffect(() => {
     // Thêm kiểm tra để đảm bảo currentUser và recipient đã tồn tại
     if (!currentUser || !recipient) {
       return;
     }
 
-    const room = [currentUser.id, recipient.id].sort().join('_');
+    // const room = [currentUser.id, recipient.id].sort().join('_');
 
     socket.emit('joinRoom', { room });
 
@@ -27,13 +27,13 @@ useEffect(() => {
         setChatHistory(prev => [...prev, newMessage]);
       }
     });
-    
+
     return () => {
       socket.off('loadHistory');
       socket.off('receiveMessage');
     };
 
-  }, [currentUser, recipient]); 
+  }, [currentUser, recipient]);
   const sendMessage = (e) => {
     e.preventDefault();
     if (message.trim()) {
@@ -51,7 +51,7 @@ useEffect(() => {
 
   return (
     <div style={{ border: '1px solid #ccc', padding: '10px', marginTop: '20px' }}>
-      <h4>Chat với {recipient.name}</h4>
+      <h4>Chat with {recipient.name}</h4>
       <div style={{ height: '200px', overflowY: 'scroll', border: '1px solid #eee', marginBottom: '10px' }}>
         {chatHistory.map((msg, index) => (
           <p key={index}>
@@ -64,10 +64,10 @@ useEffect(() => {
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Nhập tin nhắn..."
+          placeholder="Enter message..."
           style={{ width: '80%' }}
         />
-        <button type="submit">Gửi</button>
+        <button type="submit">Send</button>
       </form>
     </div>
   );

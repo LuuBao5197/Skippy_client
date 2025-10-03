@@ -152,7 +152,7 @@ const EmployeeDashboardPage = () => {
         </Paper>
         <ChatWindow
           currentUser={employee}
-          recipient={{ id: +84962442723, name: 'Owner' }}
+          recipient={{ id: '+84962442723', name: 'Owner' }}
           onClose={() => setOpenChat(true)}
         />
 
