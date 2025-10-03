@@ -44,20 +44,21 @@ const OwnerDashboardPage = () => {
     e.preventDefault();
     try {
       await ownerApi.post('/owners/createEmp', newEmployee);
-      alert('Create employee successfully and send mail had link setup ');
-      navigate(0);
-      // setNewEmployee({ name: '', email: '', role: '' });
-      // fetchEmployees();
     } catch (error) {
       alert('Lỗi khi tạo nhân viên.');
       console.error(error);
     }
+    alert('Create employee successfully and send mail had link setup');
+    setTimeout(() => {
+      navigate(0);
+    }, 1000);
+
   };
 
   const handleDeleteEmployee = async (employeeId) => {
     if (window.confirm('Bạn có chắc muốn xóa nhân viên này?')) {
       try {
-        await ownerApi.delete('/owners/deleteEmp', {data: { employeeId }});
+        await ownerApi.delete('/owners/deleteEmp', { data: { employeeId } });
         alert('Remove employee success.');
         fetchEmployees();
       } catch (error) {
@@ -72,6 +73,7 @@ const OwnerDashboardPage = () => {
     { field: 'email', headerName: 'Email', flex: 1.5 },
     { field: 'username', headerName: 'Username', flex: 1 },
     { field: 'role', headerName: 'Position', flex: 1 },
+    { field: 'status', headerName: 'Status', flex: 1 },
     {
       field: 'actions',
       type: 'actions',
@@ -117,7 +119,7 @@ const OwnerDashboardPage = () => {
         </Box>
       </Paper>
 
-      <Paper sx={{ p: 2, height: 600, width: '100%' }}>
+      <Paper sx={{ p: 2, height: "auto", width: '100%' }}>
         <TextField
           fullWidth
           variant="outlined"
@@ -148,7 +150,7 @@ const OwnerDashboardPage = () => {
         <ChatWindow
           currentUser={{ id: phoneNumber, name: 'Owner' }}
           recipient={selectedEmployee}
-          // onClose={() => setSelectedEmployee(null)} 
+        // onClose={() => setSelectedEmployee(null)} 
         />
       )}
     </Container>

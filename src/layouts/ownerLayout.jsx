@@ -19,7 +19,7 @@ const OwnerLayout = () => {
           <Link to="/owner/taskboard" style={{ marginRight: '1rem' }}>TaskManage</Link>
           {/* Thêm các link khác cho Owner ở đây */}
         </nav>
-        <button onClick={handleLogout}>Đăng xuất</button>
+        <button onClick={handleLogout}>LogOut</button>
       </header>
       <main style={{ padding: '1rem' }}>
         {/* Các trang con của Owner sẽ được render ở đây */}

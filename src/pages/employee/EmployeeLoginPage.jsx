@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 
 // MUI Components
 import {
-  Avatar, Button, TextField, Link, Grid, Box, Typography, Container, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,InputAdornment, IconButton
+  Avatar, Button, TextField, Link, Grid, Box, Typography, Container, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, IconButton
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Visibility from '@mui/icons-material/Visibility';
@@ -21,7 +21,10 @@ const EmployeeLoginPage = () => {
   // forgot password state
   const [openForgotDialog, setOpenForgotDialog] = useState(false);
   const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
+  const [openFMRPassDialog, setOpenFMRPassDialog] = useState(false);
   const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -36,7 +39,7 @@ const EmployeeLoginPage = () => {
       }));
       navigate('/employee/dashboard');
     } catch (error) {
-      alert('Lỗi: Tên đăng nhập hoặc mật khẩu không đúng.');
+      alert('Error: Username or password is not correct.');
       console.error(error);
     }
   };
@@ -54,15 +57,70 @@ const EmployeeLoginPage = () => {
   const handleCloseForgotDialog = () => {
     setOpenForgotDialog(false);
   };
-  const handleForgotPasswordSubmit = () => {
+  const handleForgotPasswordSubmit = async (e) => {
     console.log('Gửi yêu cầu reset mật khẩu cho email:', email);
+    e.preventDefault();
+    try {
+      const response = await employeeApi.post('/emps/getOtpFGPass', { email });
+      if (response.status == "200") {
+        handleCloseForgotDialog();
+        setOpenSuccessDialog(true);
+      } else {
+        throw new Error("Invalid email");
+      }
+    } catch (error) {
+      alert('Error: ' + error.response.data.message);
+      console.error(error);
+    }
 
-    handleCloseForgotDialog();
-    setOpenSuccessDialog(true);
   };
-
   const handleCloseSuccessDialog = () => {
     setOpenSuccessDialog(false);
+  };
+
+  const handleValidOtp = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await employeeApi.post('/emps/validOtpFGPass', { otp });
+      if (response.status == "200") {
+        setTimeout(() => {
+          handleCloseSuccessDialog();
+        }, 1000);
+        setTimeout(() => {
+          handleOpenFMRSPassWordDialog();
+        }, 1000);
+      } else {
+        throw new Error("Invalid otp");
+      }
+    } catch (error) {
+      alert('Error: ' + error.response.data.message);
+      console.error(error);
+    }
+  }
+  const handleOpenFMRSPassWordDialog = () => {
+    setOpenFMRPassDialog(true);
+  }
+  const handleCloseFMRSPassWordDialog = () => {
+    setOpenFMRPassDialog(false)
+  }
+  const handleResetPass = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await employeeApi.post('/emps/resetPass', {otp, newPassword });
+      if (response.status == "200") {
+         setTimeout(() => {
+           handleCloseFMRSPassWordDialog();
+           alert("Change password success fully, please sign in agains");
+        }, 1000);
+        navigate('/employee/login');
+        
+      } else {
+        throw new Error("Invalid password");
+      }
+    } catch (error) {
+      alert('Error: ' + error.response.data.message);
+      console.error(error);
+    }
   };
   return (
     <Container component="main" maxWidth="xs">
@@ -98,7 +156,7 @@ const EmployeeLoginPage = () => {
             required
             fullWidth
             name="password"
-            label="password" 
+            label="password"
             id="password"
             autoComplete="current-password"
             // Change type by state
@@ -141,40 +199,80 @@ const EmployeeLoginPage = () => {
 
       {/* Popup 1: Enter email to reset password */}
       <Dialog open={openForgotDialog} onClose={handleCloseForgotDialog}>
-        <DialogTitle>Quên mật khẩu</DialogTitle>
+        <DialogTitle>Forgot password</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Vui lòng nhập địa chỉ email của bạn. Chúng tôi sẽ gửi một liên kết để bạn đặt lại mật khẩu.
+            Please enter your email address. We sent a link have otp to your email to set new password.
           </DialogContentText>
           <TextField
             autoFocus
             margin="dense"
             id="email"
-            label="Địa chỉ Email"
+            label="Email Adress"
             type="email"
             fullWidth
             variant="standard"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)} s
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseForgotDialog}>Hủy</Button>
-          <Button onClick={handleForgotPasswordSubmit}>Gửi</Button>
+          <Button onClick={handleCloseForgotDialog}>Cancel</Button>
+          <Button onClick={handleForgotPasswordSubmit}>Send</Button>
         </DialogActions>
       </Dialog>
 
-      {/* Popup 2: Notification send email success */}
+      {/* Popup 2: Notification enter OTP */}
       <Dialog open={openSuccessDialog} onClose={handleCloseSuccessDialog}>
-        <DialogTitle>Yêu cầu đã được gửi</DialogTitle>
+        <DialogTitle>Enter OTP</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Nếu email của bạn tồn tại trong hệ thống, chúng tôi đã gửi một liên kết đặt lại mật khẩu. Vui lòng kiểm tra hộp thư.
+            Enter OTP
           </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="otp"
+            label="otp"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={otp}
+            required
+            onChange={(e) => setOtp(e.target.value)}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseSuccessDialog}>Đóng</Button>
+          <Button onClick={handleCloseSuccessDialog}>Close</Button>
         </DialogActions>
+        <Button onClick={handleValidOtp}>Send</Button>
+      </Dialog>
+
+
+      {/* Popup 3: Form reset password */}
+      <Dialog open={openFMRPassDialog} onClose={handleCloseFMRSPassWordDialog}>
+        <DialogTitle>Reset password</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Enter new Password
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="newPassword"
+            label="newPassword"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={newPassword}
+            required
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseFMRSPassWordDialog}>Close</Button>
+        </DialogActions>
+        <Button onClick={handleResetPass}>Send</Button>
       </Dialog>
     </Container>
   );
